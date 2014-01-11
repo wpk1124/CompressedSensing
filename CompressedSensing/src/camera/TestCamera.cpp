@@ -41,7 +41,7 @@ void TestCamera::registerCallback(std::function<void (const Frame& frame)> funct
 // private methods
 void TestCamera::loadImage() {
 	//"D:/Programming/Git/CompressedSensing/CompressedSensing/pics/rihanna.jpg"
-	cv::Mat inputPic = cv::imread("D:/Programming/Git/CompressedSensing/CompressedSensing/pics/rihanna.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	cv::Mat inputPic = cv::imread("C:/GitHub/CompressedSensing/CompressedSensing/pics/rihanna.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 	if(inputPic.data) {
 		LOG_DEBUG("inputPic loaded");
 	}else {
