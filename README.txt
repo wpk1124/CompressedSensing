@@ -14,3 +14,5 @@ To build, set following environment variables:
 3. OPENCL_ROOT
 4. OPENCV_DIR
 5. VIENNA_CL_ROOT
+
+test
