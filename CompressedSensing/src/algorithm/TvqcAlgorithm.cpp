@@ -8,6 +8,9 @@ TvqcAlgorithm::~TvqcAlgorithm() {}
 cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const cv::Mat A, const cv::Mat b, const cv::Mat Dv, const cv::Mat Dh, double epsilon, double tau, double newtontol, int newtonmaxiter, double cgtol, int cgmaxiter) {
 	double alpha = 0.01, beta = 0.5;
 	int N = x0.rows, nn = (int) (std::sqrt(N)), K = A.rows;
+
+	std::cout << "Newton initiated.\n";
+
 	//initial point
 	cv::Mat AtA = A.t() * A;
 	cv::Mat x = x0.clone();
@@ -20,10 +23,8 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 	cv::Mat logft;
 	cv::log(ft, logft);
 	cv::Mat rTr = r.t() * r;
-	std::cout << "\nTest---pierwszy---------\n\n"; 
-	std::cout << "\nTest------------\n\n" << rTr.at<double>(0,0);
-	double fe = 0.5 * (rTr.at<double>(0) - std::pow(epsilon,2));
-	std::cout << "\nWyzej sie wysypuje\n\n";
+
+	double fe = 0.5 * (rTr.at<float>(0) - std::pow(epsilon,2));
 	double f = cv::sum(t)[0] - (1/tau) * (cv::sum(logft)[0] + log(-fe));
 	
 	niter = 0;
@@ -41,17 +42,17 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 		cv::Mat sigb = 1/(ft.mul(ft)) - sig12.mul(sig12)/sig22;
 
 		cv::Mat w1p = ntgx = Dh.t() * ((Dhx.mul(sig12/sig22)).mul(ntgt)) - Dv.t()*((Dvx.mul(sig12/sig22)).mul(ntgt));
-
+		
 		cv::Mat H11p = Dh.t() * cv::Mat::diag(-1/ft + sigb.mul(Dhx.mul(Dhx))) * Dh
 			+ Dv.t() * cv::Mat::diag(-1/ft + sigb.mul(Dvx.mul(Dvx))) * Dv
 			+ Dh.t() * cv::Mat::diag(sigb.mul(Dhx.mul(Dvx))) * Dv
 			+ Dv.t() * cv::Mat::diag(sigb.mul(Dhx.mul(Dvx))) * Dh
 			- (1/fe) * AtA + (1/pow(fe,2))*Atr*Atr.t();
-
+		
 		cv::Mat dx = cv::Mat(N, 1, CV_32FC1);
 		cv::solve(H11p, w1p, dx);
 		cv::Mat Adx = A * dx;
-
+			
 		cv::Mat Dhdx = Dh * dx, Dvdx = Dv * dx;
 		cv::Mat dt = (1/sig22).mul(ntgt - sig12.mul(Dhx.mul(Dhdx) + Dvx.mul(Dvdx)));
 
@@ -62,25 +63,31 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 		cv::Mat tsols = cv::Mat(2*N, 1, CV_32FC1);
 		cv::Mat sqrt1 = cv::Mat(N, 1, CV_32FC1);
 		cv::sqrt(bqt.mul(bqt)-4*aqt.mul(cqt), sqrt1);
-		hconcat((-bqt+sqrt1)/(2*aqt),(-bqt-sqrt1)/(2*aqt),tsols);
+		vconcat((-bqt+sqrt1)/(2*aqt),(-bqt-sqrt1)/(2*aqt),tsols);
 		cv::Mat dqt = cv::Mat(2*N, 1, CV_32FC1);
-		hconcat(bqt.mul(bqt) > 4*aqt.mul(cqt),bqt.mul(bqt) > 4*aqt.mul(cqt), dqt);
-		cv::Mat indt = cv::Mat(2*N, 1, CV_32FC1);
+		vconcat(bqt.mul(bqt) > 4*aqt.mul(cqt), bqt.mul(bqt) > 4*aqt.mul(cqt), dqt);
+		cv::Mat indt = cv::Mat(N, 1, CV_32FC1);
 		cv::findNonZero(dqt & (tsols > 0), indt);
 		cv::Mat Maqe = Adx.t()*Adx;
 		cv::Mat Mbqe = 2*r.t()*Adx;
-		double aqe = Maqe.at<double>(0);
-		double bqe = Mbqe.at<double>(0);
-		double cqe = rTr.at<double>(0) - std::pow(epsilon,2);
-		cv::Mat tsols1 = tsols.rowRange(indt.at<int>(0), indt.at<int>(indt.rows));
+		double aqe = Maqe.at<float>(0);
+		double bqe = Mbqe.at<float>(0);
+		double cqe = rTr.at<float>(0) - std::pow(epsilon,2);
+		std::vector<cv::Mat> indt2(2);
+		cv::split(indt, indt2);
+		indt.reshape(1,indt.rows);
+		cv::Mat tsols1 = cv::Mat(indt2[1].rows, 1, CV_32FC1);
+		for(unsigned int i = 0; i < indt2[1].rows; i++) {
+			tsols.at<float>(i) = tsols.at<float>(indt2[1].at<int>(i));
+		}
 		double tsols1_min;
 		cv::minMaxLoc(tsols1, &tsols1_min, NULL, NULL, NULL);
 		double smax = std::min(1.0,std::min(tsols1_min,(-bqe+std::sqrt(pow(bqe,2)-4*aqe*cqe))/(2*aqe)));
 		double s = 0.99 * smax;
 
 		//backtracking line search
-		bool suffdec;
-		int backiter;
+		bool suffdec = false;
+		int backiter = 0;
 		cv::Mat xp = cv::Mat(N,1,CV_32FC1);
 		cv::Mat tp = cv::Mat(N,1,CV_32FC1);
 		cv::Mat rp = cv::Mat(N,1,CV_32FC1);
@@ -93,7 +100,7 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 		cv::Mat dxdt = cv::Mat(2*N,1,CV_32FC1);
 		cv::vconcat(dx,dt,dxdt);
 		cv::Mat gradfx = gradf.t() * dxdt;
-		flin = f + alpha*s*gradfx.at<double>(0);
+		flin = f + alpha*s*gradfx.at<float>(0);
 
 		while(!suffdec) {
 			xp = x + s*dx;
@@ -103,7 +110,7 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 			Dvxp = Dvx + s*Dvdx;
 			ftp = 0.5 * (Dhxp.mul(Dhxp) + Dvxp.mul(Dvxp) - tp.mul(tp));
 			rpTrp = rp.t()*rp;
-			fep = 0.5 * (rpTrp.at<double>(0) - pow(epsilon,2));
+			fep = 0.5 * (rpTrp.at<float>(0) - pow(epsilon,2));
 			cv::log(ftp, logftp);
 			fp = cv::sum(tp)[0] - (1/tau) * (cv::sum(logftp)[0] + log(-fep));
 			suffdec = (fp <= flin);
@@ -123,7 +130,7 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 		ft = ftp;
 		fe = fep;
 		f = fp;
-		double lambda2 = -gradfx.at<double>(0);
+		double lambda2 = -gradfx.at<float>(0);
 		double stepsize = s * cv::norm(dxdt);
 		niter++;
 		done = (lambda2/2 < newtontol) || (niter <= newtonmaxiter);
@@ -191,7 +198,8 @@ cv::Mat TvqcAlgorithm::recoverImage(const cv::Mat& measurementMatrix, const cv::
 		x = xp;
 		tau = mu * tau;
 	}
+	x = x.reshape(1,nn);
 	cv::Mat outputImage = x.clone();
-	
+	std::cout << "Koniec!\n\n";
 	return outputImage;
 }
