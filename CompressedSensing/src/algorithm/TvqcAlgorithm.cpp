@@ -66,7 +66,7 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 		vconcat((-bqt+sqrt1)/(2*aqt),(-bqt-sqrt1)/(2*aqt),tsols);
 		cv::Mat dqt = cv::Mat(2*N, 1, CV_32FC1);
 		vconcat(bqt.mul(bqt) > 4*aqt.mul(cqt), bqt.mul(bqt) > 4*aqt.mul(cqt), dqt);
-		cv::Mat indt = cv::Mat(N, 1, CV_32FC1);
+		cv::Mat indt = cv::Mat(N, 1, CV_32SC1);
 		cv::findNonZero(dqt & (tsols > 0), indt);
 		cv::Mat Maqe = Adx.t()*Adx;
 		cv::Mat Mbqe = 2*r.t()*Adx;
