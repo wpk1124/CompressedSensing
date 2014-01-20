@@ -26,6 +26,7 @@ namespace math {
 		static std::vector<std::vector<float>> matToStdMatrix(const cv::Mat& A);
 		static ublas::matrix<float> matToBoostMatrix(const cv::Mat& A);
 		static void normalizeImage(cv::Mat& input);
+		std::vector<int> findIndt(cv::Mat& dqt, cv::Mat& tsols);
 	};
 
 }} //namespace end

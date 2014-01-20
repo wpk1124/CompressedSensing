@@ -76,9 +76,10 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 		std::vector<cv::Mat> indt2(2);
 		cv::split(indt, indt2);
 		indt.reshape(1,indt.rows);
+
 		cv::Mat tsols1 = cv::Mat(indt2[1].rows, 1, CV_32FC1);
 		for(unsigned int i = 0; i < indt2[1].rows; i++) {
-			tsols.at<float>(i) = tsols.at<float>(indt2[1].at<int>(i));
+			tsols1.at<float>(i) = tsols.at<float>(indt2[1].at<int>(i));
 		}
 		double tsols1_min;
 		cv::minMaxLoc(tsols1, &tsols1_min, NULL, NULL, NULL);

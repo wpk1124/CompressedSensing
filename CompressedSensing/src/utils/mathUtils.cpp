@@ -44,3 +44,13 @@ void CS::math::MathUtils::normalizeImage(cv::Mat& input) {
 	input -= cv::mean(input);
 }
 
+std::vector<int> findIndt(cv::Mat& dqt, cv::Mat& tsols) {
+	std::vector<int> output;
+	for(int i = 0; i < dqt.rows; i++) {
+		for(int j = 0; j < dqt.cols; j++) {
+			if(dqt.at<float>(i,j) && (tsols.at<float>(i,j) > 0))
+				output.push_back(i * dqt.rows + j);
+		}
+   }
+   return output;
+}
