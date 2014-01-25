@@ -65,7 +65,7 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 		cv::Mat sqrt1 = cv::Mat(N, 1, CV_32FC1);
 		cv::sqrt(bqt.mul(bqt)-4*aqt.mul(cqt), sqrt1);
 		vconcat((-bqt+sqrt1)/(2*aqt),(-bqt-sqrt1)/(2*aqt),tsols);
-		cv::Mat dqt = cv::Mat(2*N, 1, CV_32FC1);
+		cv::Mat dqt;// = cv::Mat(2*N, 1, CV_32FC1);
 		vconcat(bqt.mul(bqt) > 4*aqt.mul(cqt), bqt.mul(bqt) > 4*aqt.mul(cqt), dqt);
 		//cv::Mat indt = cv::Mat(N, 1, CV_32SC1);
 		//cv::findNonZero(dqt & (tsols > 0), indt);
@@ -79,7 +79,6 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 		//indt.reshape(1,indt.rows);
 
 
-		//sprawdzic kaj to sie wywala (debugger?)
 		std::vector<int> indt = CS::math::MathUtils::findIndt(dqt, tsols);
 
 		int indt_size = indt.size();
