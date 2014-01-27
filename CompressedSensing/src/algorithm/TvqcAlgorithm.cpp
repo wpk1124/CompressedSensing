@@ -207,6 +207,6 @@ cv::Mat TvqcAlgorithm::recoverImage(const cv::Mat& measurementMatrix, const cv::
 	}
 	x = x.reshape(1,nn);
 	cv::Mat outputImage = x.clone();
-	std::cout << "Koniec!\n\n";
+	std::cout << "Finish!\n\n";
 	return outputImage;
 }
