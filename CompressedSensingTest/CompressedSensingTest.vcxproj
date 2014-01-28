@@ -22,6 +22,7 @@
     <ClCompile Include="test\gpu\GPUSolverTest.cpp" />
     <ClCompile Include="test\testmain.cpp" />
     <ClCompile Include="test\testutils\TestUtils.cpp" />
+    <ClCompile Include="test\tvqcalgorithm\TvqcAlgorithmTest.cpp" />
     <ClCompile Include="test\utils\MathUtilsTest.cpp" />
     <ClCompile Include="test\viennacl\ViennaCLTest.cpp" />
   </ItemGroup>

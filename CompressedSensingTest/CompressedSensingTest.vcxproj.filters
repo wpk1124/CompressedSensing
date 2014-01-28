@@ -30,6 +30,9 @@
     <ClCompile Include="test\viennacl\ViennaCLTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test\tvqcalgorithm\TvqcAlgorithmTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test\camera\TestCamera.h">
