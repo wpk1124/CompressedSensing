@@ -10,8 +10,6 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 	double alpha = 0.01, beta = 0.5;
 	int N = x0.rows, nn = (int) (std::sqrt(N)), K = A.rows;
 
-	std::cout << "Newton initiated.\n";
-
 	//initial point
 	cv::Mat AtA = A.t() * A;
 	cv::Mat x = x0.clone();
@@ -31,6 +29,7 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 	niter = 0;
 	bool done = false;
 	while(!done) {
+		std::cout << "Newton iteration: " << niter << " initiated.\n";
 		cv::Mat Atr = A.t() * r;
 		cv::Mat ntgx = Dh.t()*((1/ft).mul(Dhx)) + Dv.t()*((1/ft).mul(Dvx)) + (1/fe)*Atr;
 		cv::Mat ntgt = -tau * cv::Mat::ones(N,1,CV_32FC1) - t/ft;
@@ -129,18 +128,18 @@ cv::Mat TvqcAlgorithm::Tvqc_Newton(int &niter, cv::Mat& x0, cv::Mat& t0, const c
 		}
 
 		//set up for next iterations
-		x = xp;
-		t = tp;
-		r = rp;
-		Dvx = Dvxp;
-		Dhx = Dhxp;
-		ft = ftp;
+		x = xp.clone();
+		t = tp.clone();
+		r = rp.clone();
+		Dvx = Dvxp.clone();
+		Dhx = Dhxp.clone();
+		ft = ftp.clone();
 		fe = fep;
 		f = fp;
 		double lambda2 = -gradfx.at<float>(0);
 		double stepsize = s * cv::norm(dxdt);
 		niter++;
-		done = (lambda2/2 < newtontol) || (niter <= newtonmaxiter);
+		done = (lambda2/2 < newtontol) || (niter >= newtonmaxiter);
 	}
 	return x;
 }
@@ -202,8 +201,9 @@ cv::Mat TvqcAlgorithm::recoverImage(const cv::Mat& measurementMatrix, const cv::
 		totaliter = totaliter + niter;
 		cv::sqrt((Dh*xp).mul(Dh*xp) + (Dv*xp).mul(Dv*xp), Norm);
 		tvxp = cv::sum(Norm)[0];
-		x = xp;
+		x = xp.clone();
 		tau = mu * tau;
+		std::cout << "LogBarrier iteration: " << i+1 << std::endl;
 	}
 	x = x.reshape(1,nn);
 	cv::Mat outputImage = x.clone();
